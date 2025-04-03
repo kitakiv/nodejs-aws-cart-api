@@ -36,7 +36,9 @@ export type PutCartPayload = {
 export type CreateOrderPayload = {
   userId: string;
   cartId: string;
-  items: Array<{ productId: string; count: number }>;
-  address: Address;
   total: number;
+  status: OrderStatus;
+  payment: JSON;
+  delivery: JSON;
+  comments: string;
 };

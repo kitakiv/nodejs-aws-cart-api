@@ -7,6 +7,9 @@ import { AuthModule } from './auth/auth.module';
 import { OrderModule } from './order/order.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { User } from './users/models/index';
+import { Cart, CartItem } from './cart/models/index';
+import { Order } from './order/models';
+
 
 @Module({
   imports: [
@@ -23,7 +26,7 @@ import { User } from './users/models/index';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
-        entities: [User],
+        entities: [User, Cart, CartItem, Order],
         synchronize: false,
         ssl: {
           rejectUnauthorized: false,

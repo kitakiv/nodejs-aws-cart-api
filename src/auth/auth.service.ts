@@ -19,9 +19,7 @@ export class AuthService {
     const user = await this.usersService.findOne(payload.name);
 
     if (user) {
-      throw new BadRequestException(
-        `User with such name already exists ${user}`,
-      );
+      throw new BadRequestException(`User with such name already exists`);
     }
 
     const { id: userId } = await this.usersService.createOne(payload);

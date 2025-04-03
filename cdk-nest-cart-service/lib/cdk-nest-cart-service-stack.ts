@@ -32,7 +32,7 @@ export class CdkNestCartServiceStack extends cdk.Stack {
     });
 
     const integration = new apigateway.LambdaIntegration(handler, {
-      requestTemplates: { "application/json": '{ "statusCode": "200" }' }
+      requestTemplates: { 'application/json': '{ "statusCode": "200" }' },
     });
 
     api.root.addProxy({

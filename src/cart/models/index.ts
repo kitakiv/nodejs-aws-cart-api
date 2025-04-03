@@ -1,3 +1,5 @@
+import { Entity, Column, PrimaryGeneratedColumn, UpdateDateColumn, CreateDateColumn } from 'typeorm';
+
 export enum CartStatuses {
   OPEN = 'OPEN',
   STATUS = 'STATUS',
@@ -10,16 +12,32 @@ export type Product = {
   price: number;
 };
 
-export type CartItem = {
-  product: Product;
+@Entity('cart-items')
+export class CartItem {
+  @PrimaryGeneratedColumn('uuid')
+  cart_id: string;
+  @Column()
+  product_id: string;
+  @Column()
   count: number;
-};
+  @Column()
+  price: number;
+}
 
-export type Cart = {
+@Entity('carts')
+export class Cart {
+  @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column()
   user_id: string;
-  created_at: number;
-  updated_at: number;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
+
+  @Column()
   status: CartStatuses;
-  items: CartItem[];
-};
+}

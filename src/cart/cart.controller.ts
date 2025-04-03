@@ -16,7 +16,7 @@ import { AppRequest, getUserIdFromRequest } from '../shared';
 import { calculateCartTotal } from './models-rules';
 import { CartService } from './services';
 import { CartItem } from './models';
-import { CreateOrderDto, PutCartPayload } from 'src/order/type';
+import { CreateOrderDto, OrderStatus, PutCartPayload } from 'src/order/type';
 
 @Controller('api/profile/cart')
 export class CartController {
@@ -28,28 +28,27 @@ export class CartController {
   // @UseGuards(JwtAuthGuard)
   @UseGuards(BasicAuthGuard)
   @Get()
-  findUserCart(@Req() req: AppRequest): CartItem[] {
-    const cart = this.cartService.findOrCreateByUserId(
+  async findUserCart(@Req() req: AppRequest): Promise<CartItem[]> {
+    const cart = await this.cartService.findOrCreateByUserId(
       getUserIdFromRequest(req),
     );
-
-    return cart.items;
+    return await this.cartService.getItemsByCartId(cart.id);
   }
 
   // @UseGuards(JwtAuthGuard)
   @UseGuards(BasicAuthGuard)
   @Put()
-  updateUserCart(
+  async updateUserCart(
     @Req() req: AppRequest,
     @Body() body: PutCartPayload,
-  ): CartItem[] {
+  ): Promise<CartItem[]> {
     // TODO: validate body payload...
-    const cart = this.cartService.updateByUserId(
+    const cart = await this.cartService.updateByUserId(
       getUserIdFromRequest(req),
       body,
     );
-
-    return cart.items;
+    const items = await this.cartService.getItemsByCartId(cart.id);
+    return items;
   }
 
   // @UseGuards(JwtAuthGuard)
@@ -63,25 +62,25 @@ export class CartController {
   // @UseGuards(JwtAuthGuard)
   @UseGuards(BasicAuthGuard)
   @Put('order')
-  checkout(@Req() req: AppRequest, @Body() body: CreateOrderDto) {
+  async checkout(@Req() req: AppRequest, @Body() body: CreateOrderDto) {
     const userId = getUserIdFromRequest(req);
-    const cart = this.cartService.findByUserId(userId);
-
-    if (!(cart && cart.items.length)) {
+    const cart = await this.cartService.findByUserId(userId);
+    const numberOfItems = await this.cartService.countOfItems(cart.id);
+    const items = await this.cartService.getItemsByCartId(cart.id);
+    if (!(cart && numberOfItems)) {
       throw new BadRequestException('Cart is empty');
     }
 
-    const { id: cartId, items } = cart;
+    const { id: cartId } = cart;
     const total = calculateCartTotal(items);
     const order = this.orderService.create({
       userId,
       cartId,
-      items: items.map(({ product, count }) => ({
-        productId: product.id,
-        count,
-      })),
-      address: body.address,
       total,
+      comments: body.address.comment,
+      status: OrderStatus.Open,
+      payment: JSON.stringify({}) as unknown as JSON,
+      delivery: JSON.stringify(body.address) as unknown as JSON,
     });
     this.cartService.removeByUserId(userId);
 
@@ -92,7 +91,7 @@ export class CartController {
 
   @UseGuards(BasicAuthGuard)
   @Get('order')
-  getOrder(): Order[] {
+  getOrder(): Promise<Order[]> {
     return this.orderService.getAll();
   }
 }
