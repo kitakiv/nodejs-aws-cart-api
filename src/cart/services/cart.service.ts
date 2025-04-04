@@ -37,32 +37,49 @@ export class CartService {
     return this.createByUserId(userId);
   }
 
-  async updateByUserId(userId: string, payload: PutCartPayload): Promise<Cart> {
+  async updateByUserId(
+    userId: string,
+    payload: PutCartPayload,
+  ): Promise<CartItem | null> {
     const userCart = await this.findOrCreateByUserId(userId);
-    const updatedTime = Date.now();
+    const cartId = userCart.id;
 
-    const cartIndex = userCart.id;
-    const productItem = await this.itemService.findOneBy({
-      cart_id: cartIndex,
+    const existingItem = await this.itemService.findOneBy({
+      cart_id: cartId,
       product_id: payload.product.id,
-    })
-    if (!productItem) {
-      const item = this.itemService.create({
-        cart_id: cartIndex,
-        product_id: payload.product.id,
-        count: payload.count,
-        price: payload.product.price
-      })
-      await this.itemService.save(item);
-    } else if (payload.count === 0 && productItem) {
-      await this.itemService.remove(productItem);
-    } else {
-      await this.itemService.update(productItem, {
-        count: payload.count,
-      });
+    });
+
+    if (payload.count === 0) {
+      if (existingItem) {
+        await this.itemService.delete({
+          cart_id: cartId,
+          product_id: payload.product.id,
+        });
+      }
+      return null;
     }
 
-    return userCart;
+    if (!existingItem) {
+      const newItem = this.itemService.create({
+        cart_id: cartId,
+        product_id: payload.product.id,
+        count: payload.count,
+        price: payload.product.price,
+      });
+      return await this.itemService.save(newItem);
+    }
+    await this.itemService.update(
+      {
+        cart_id: cartId,
+        product_id: payload.product.id,
+      },
+      { count: payload.count, price: payload.product.price },
+    );
+
+    return await this.itemService.findOneBy({
+      cart_id: cartId,
+      product_id: payload.product.id,
+    });
   }
 
   removeByUserId(userId): void {

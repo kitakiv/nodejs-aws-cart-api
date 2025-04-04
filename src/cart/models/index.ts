@@ -1,4 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn, UpdateDateColumn, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  PrimaryColumn,
+} from 'typeorm';
 
 export enum CartStatuses {
   OPEN = 'OPEN',
@@ -11,18 +20,6 @@ export type Product = {
   description: string;
   price: number;
 };
-
-@Entity('cart-items')
-export class CartItem {
-  @PrimaryGeneratedColumn('uuid')
-  cart_id: string;
-  @Column()
-  product_id: string;
-  @Column()
-  count: number;
-  @Column()
-  price: number;
-}
 
 @Entity('carts')
 export class Cart {
@@ -40,4 +37,23 @@ export class Cart {
 
   @Column()
   status: CartStatuses;
+}
+
+@Entity('cart_items')
+export class CartItem {
+  @PrimaryColumn('uuid', { name: 'cart_id' })
+  cart_id: string;
+
+  @PrimaryColumn('uuid', { name: 'product_id' })
+  product_id: string;
+
+  @Column()
+  count: number;
+
+  @Column('decimal', { precision: 10, scale: 2 })
+  price: number;
+
+  @ManyToOne(() => Cart)
+  @JoinColumn({ name: 'cart_id' })
+  cart: Cart;
 }
