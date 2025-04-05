@@ -84,7 +84,6 @@ export class CartController {
       payment: JSON.stringify({}) as unknown as JSON,
       delivery: JSON.stringify(body.address) as unknown as JSON,
     });
-    this.cartService.removeByUserId(userId);
 
     return {
       order,

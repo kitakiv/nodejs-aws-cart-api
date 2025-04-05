@@ -6,6 +6,7 @@ import {
   MinLength,
   MaxLength,
   IsOptional,
+  IsUUID,
 } from 'class-validator';
 
 @Entity('users')
@@ -14,20 +15,12 @@ export class User {
   id: string;
 
   @Column({ length: 100 })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(2)
-  @MaxLength(100)
   name: string;
 
   @Column({ length: 100, unique: true, nullable: true })
-  @IsEmail()
-  @IsOptional()
   email: string | null;
 
   @Column({ type: 'text' })
-  @IsNotEmpty()
-  @IsString()
   password: string;
 }
 

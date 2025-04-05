@@ -4,10 +4,8 @@ import { CreateOrderPayload, OrderStatus } from '../type';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
-
 @Injectable()
 export class OrderService {
-
   constructor(
     @InjectRepository(Order)
     private orderService: Repository<Order>,
@@ -21,15 +19,15 @@ export class OrderService {
   }
 
   async create(data: CreateOrderPayload): Promise<Order> {
-    const order = {
-      user_id: data.cartId,
-      status: OrderStatus.Open,
-      cart_id: data.cartId,
-      total: data.total,
-      payment: data.payment,
+    const order = this.orderService.create({
+      userId: data.userId,
+      cartId: data.cartId,
+      payment: data.payment || {},
       delivery: data.delivery,
       comments: data.comments,
-    };
+      status: OrderStatus.Open, // Or whatever your enum value is
+      total: data.total,
+    });
     const result = await this.orderService.save(order);
 
     return result;

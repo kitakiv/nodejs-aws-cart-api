@@ -43,7 +43,7 @@ export class CartService {
   ): Promise<CartItem | null> {
     const userCart = await this.findOrCreateByUserId(userId);
     const cartId = userCart.id;
-
+    const time = new Date();
     const existingItem = await this.itemService.findOneBy({
       cart_id: cartId,
       product_id: payload.product.id,
@@ -75,7 +75,7 @@ export class CartService {
       },
       { count: payload.count, price: payload.product.price },
     );
-
+    await this.userCarts.update({ id: cartId }, { updated_at: time });
     return await this.itemService.findOneBy({
       cart_id: cartId,
       product_id: payload.product.id,

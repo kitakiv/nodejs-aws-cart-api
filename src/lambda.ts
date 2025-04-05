@@ -5,6 +5,7 @@ import { Server } from 'http';
 import { createServer, proxy } from 'aws-serverless-express';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import express from 'express';
+import { ValidationPipe } from '@nestjs/common';
 
 let cachedServer: Server;
 
@@ -13,6 +14,7 @@ async function bootstrapServer(): Promise<Server> {
   const adapter = new ExpressAdapter(expressApp);
   const app = await NestFactory.create(AppModule, adapter);
   app.enableCors();
+  app.useGlobalPipes(new ValidationPipe());
   await app.init();
   return createServer(expressApp);
 }
