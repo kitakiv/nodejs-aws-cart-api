@@ -73,6 +73,9 @@ export class PutCartPayload {
   count: number;
 };
 export class CreateOrderPayload {
+  @IsOptional()
+  @IsUUID()
+  id?: string;
   @IsUUID()
   @IsNotEmpty()
   userId: string;
