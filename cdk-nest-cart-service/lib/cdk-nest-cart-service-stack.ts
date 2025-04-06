@@ -10,7 +10,7 @@ export class CdkNestCartServiceStack extends cdk.Stack {
     super(scope, id, props);
 
     const handler = new lambda.Function(this, 'NestJsLambda', {
-      runtime: lambda.Runtime.NODEJS_18_X,
+      runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'src/lambda.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../../dist')),
       memorySize: 1024,
@@ -20,6 +20,11 @@ export class CdkNestCartServiceStack extends cdk.Stack {
         AUTH_USERNAME: process.env.AUTH_USERNAME || 'YourGithubLogin',
         AUTH_PASSWORD: process.env.AUTH_PASSWORD || 'password',
         APP_URL: process.env.APP_URL || 'http://localhost:4000',
+        DB_HOST: process.env.DB_HOST || 'localhost',
+        DB_PORT: process.env.DB_PORT || '5432',
+        DB_USERNAME: process.env.DB_USERNAME || 'postgres',
+        DB_PASSWORD: process.env.DB_PASSWORD || 'password',
+        DB_NAME: process.env.DB_NAME || 'postgres',
       },
     });
     const api = new apigateway.RestApi(this, 'NestJsApi', {

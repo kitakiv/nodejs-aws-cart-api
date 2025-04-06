@@ -28,6 +28,7 @@ import { Order } from './order/models';
         database: configService.get('DB_DATABASE'),
         entities: [User, Cart, CartItem, Order],
         synchronize: false,
+        useNativeUuidGenerator: true,
         ssl: {
           rejectUnauthorized: false,
         }

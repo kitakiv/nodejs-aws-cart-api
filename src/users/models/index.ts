@@ -6,7 +6,6 @@ import {
   MinLength,
   MaxLength,
   IsOptional,
-  IsUUID,
 } from 'class-validator';
 
 @Entity('users')
