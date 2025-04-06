@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Cart, CartStatuses, CartItem } from '../models';
+import { Cart, CartStatuses, CartItem, Product } from '../models';
 import { PutCartPayload } from 'src/order/type';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -11,6 +11,8 @@ export class CartService {
     private userCarts: Repository<Cart>,
     @InjectRepository(CartItem)
     private itemService: Repository<CartItem>,
+    @InjectRepository(Product)
+    private productService: Repository<Product>,
   ) {}
   // private userCarts: Record<string, Cart> = {};
 
@@ -66,6 +68,17 @@ export class CartService {
         count: payload.count,
         price: payload.product.price,
       });
+      const product = await this.productService.findOneBy({
+        id: payload.product.id,
+      })
+      if (!product) {
+        await this.productService.save({
+          id: payload.product.id,
+          title: payload.product.title,
+          price: payload.product.price,
+          description: payload.product.description
+        });
+      }
       return await this.itemService.save(newItem);
     }
     await this.itemService.update(
@@ -92,5 +105,9 @@ export class CartService {
 
   countOfItems(cartId: string): Promise<number> {
     return this.itemService.countBy({ cart_id: cartId });
+  }
+
+  getProductById(productId: string): Promise<Product | null> {
+    return this.productService.findOneBy({ id: productId });
   }
 }

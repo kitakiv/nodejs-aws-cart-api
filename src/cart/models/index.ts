@@ -14,13 +14,6 @@ export enum CartStatuses {
   STATUS = 'STATUS',
 }
 
-export type Product = {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-};
-
 @Entity('carts')
 export class Cart {
   @PrimaryGeneratedColumn('uuid')
@@ -39,6 +32,21 @@ export class Cart {
   status: CartStatuses;
 }
 
+@Entity('products')
+export class Product {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  title: string;
+
+  @Column()
+  description: string;
+
+  @Column('decimal', { precision: 10, scale: 2 })
+  price: number;
+}
+
 @Entity('cart_items')
 export class CartItem {
   @PrimaryColumn('uuid', { name: 'cart_id' })
@@ -52,6 +60,10 @@ export class CartItem {
 
   @Column('decimal', { precision: 10, scale: 2 })
   price: number;
+
+  @ManyToOne(() => Product)
+  @JoinColumn({ name: 'product_id' })
+  product: Product;
 
   @ManyToOne(() => Cart)
   @JoinColumn({ name: 'cart_id' })
