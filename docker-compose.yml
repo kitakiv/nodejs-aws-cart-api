@@ -1,0 +1,18 @@
+
+services:
+  api:
+    image: kitakiv-cart-api:latest
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - APP_PORT=${APP_PORT}
+      - AUTH_USERNAME=${AUTH_USERNAME}
+      - AUTH_PASSWORD=${AUTH_PASSWORD}
+      - APP_URL=${APP_URL}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    restart: always

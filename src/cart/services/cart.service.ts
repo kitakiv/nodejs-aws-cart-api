@@ -1,35 +1,36 @@
 import { Injectable } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
-import { Cart, CartStatuses } from '../models';
+import { Cart, CartStatuses, CartItem, Product } from '../models';
 import { PutCartPayload } from 'src/order/type';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class CartService {
-  private userCarts: Record<string, Cart> = {};
+  constructor(
+    @InjectRepository(Cart)
+    private userCarts: Repository<Cart>,
+    @InjectRepository(CartItem)
+    private itemService: Repository<CartItem>,
+    @InjectRepository(Product)
+    private productService: Repository<Product>,
+  ) {}
+  // private userCarts: Record<string, Cart> = {};
 
-  findByUserId(userId: string): Cart {
-    return this.userCarts[userId];
+  findByUserId(userId: string): Promise<Cart | null> {
+    return this.userCarts.findOneBy({ user_id: userId });
   }
 
-  createByUserId(user_id: string): Cart {
-    const timestamp = Date.now();
-
-    const userCart = {
-      id: randomUUID(),
+  createByUserId(user_id: string): Promise<Cart> {
+    const cart = this.userCarts.create({
       user_id,
-      created_at: timestamp,
-      updated_at: timestamp,
       status: CartStatuses.OPEN,
-      items: [],
-    };
-
-    this.userCarts[user_id] = userCart;
-
+    });
+    const userCart = this.userCarts.save(cart);
     return userCart;
   }
 
-  findOrCreateByUserId(userId: string): Cart {
-    const userCart = this.findByUserId(userId);
+  async findOrCreateByUserId(userId: string) {
+    const userCart = await this.findByUserId(userId);
 
     if (userCart) {
       return userCart;
@@ -38,25 +39,75 @@ export class CartService {
     return this.createByUserId(userId);
   }
 
-  updateByUserId(userId: string, payload: PutCartPayload): Cart {
-    const userCart = this.findOrCreateByUserId(userId);
+  async updateByUserId(
+    userId: string,
+    payload: PutCartPayload,
+  ): Promise<CartItem | null> {
+    const userCart = await this.findOrCreateByUserId(userId);
+    const cartId = userCart.id;
+    const time = new Date();
+    const existingItem = await this.itemService.findOneBy({
+      cart_id: cartId,
+      product_id: payload.product.id,
+    });
 
-    const index = userCart.items.findIndex(
-      ({ product }) => product.id === payload.product.id,
-    );
-
-    if (index === -1) {
-      userCart.items.push(payload);
-    } else if (payload.count === 0) {
-      userCart.items.splice(index, 1);
-    } else {
-      userCart.items[index] = payload;
+    if (payload.count === 0) {
+      if (existingItem) {
+        await this.itemService.delete({
+          cart_id: cartId,
+          product_id: payload.product.id,
+        });
+      }
+      return null;
     }
 
-    return userCart;
+    if (!existingItem) {
+      const newItem = this.itemService.create({
+        cart_id: cartId,
+        product_id: payload.product.id,
+        count: payload.count,
+        price: payload.product.price,
+      });
+      const product = await this.productService.findOneBy({
+        id: payload.product.id,
+      })
+      if (!product) {
+        await this.productService.save({
+          id: payload.product.id,
+          title: payload.product.title,
+          price: payload.product.price,
+          description: payload.product.description
+        });
+      }
+      return await this.itemService.save(newItem);
+    }
+    await this.itemService.update(
+      {
+        cart_id: cartId,
+        product_id: payload.product.id,
+      },
+      { count: payload.count, price: payload.product.price },
+    );
+    await this.userCarts.update({ id: cartId }, { updated_at: time });
+    return await this.itemService.findOneBy({
+      cart_id: cartId,
+      product_id: payload.product.id,
+    });
   }
 
   removeByUserId(userId): void {
-    this.userCarts[userId] = null;
+    this.userCarts.delete({ user_id: userId });
+  }
+
+  getItemsByCartId(cartId: string): Promise<CartItem[]> {
+    return this.itemService.findBy({ cart_id: cartId });
+  }
+
+  countOfItems(cartId: string): Promise<number> {
+    return this.itemService.countBy({ cart_id: cartId });
+  }
+
+  getProductById(productId: string): Promise<Product | null> {
+    return this.productService.findOneBy({ id: productId });
   }
 }

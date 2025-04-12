@@ -1,14 +1,33 @@
-import { Address, OrderStatus } from '../type';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { OrderStatus } from '../type';
 
-export type Order = {
-  id?: string;
+@Entity('orders')
+export class Order {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column('uuid', { name: 'user_id' })
   userId: string;
-  items: Array<{ productId: string; count: number }>;
+
+  @Column('uuid', { name: 'cart_id' })
   cartId: string;
-  address: Address;
-  statusHistory: Array<{
-    status: OrderStatus.Open;
-    timestamp: number;
-    comment: string;
-  }>;
-};
+
+  @Column('jsonb')
+  payment: Record<string, any>;
+
+  @Column('jsonb')
+  delivery: Record<string, any>;
+
+  @Column('text', { nullable: true })
+  comments: string;
+
+  @Column({
+    type: 'enum',
+    enum: OrderStatus,
+    name: 'status'
+  })
+  status: OrderStatus;
+
+  @Column('decimal', { precision: 10, scale: 2 })
+  total: number;
+}
