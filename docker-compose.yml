@@ -1,7 +1,7 @@
 
 services:
   api:
-    image: cart-api:latest
+    image: kitakiv-cart-api:latest
     ports:
       - "4000:4000"
     environment:

@@ -27,8 +27,12 @@ cdk-nest-cart-service  # AWS CDK deployment artifacts that aren't needed
 README.md         # Documentation file not needed for running the application
 
 test
+**/*.spec.ts
+**/*.test.ts
+jest.config.js
 
 env.example
+
 
 
 
