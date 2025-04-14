@@ -2,7 +2,7 @@ services:
   api:
     image: kitakiv/eb-image:latest
     ports:
-      - "4000:4000"
+      - "80:4000"
     environment:
       - NODE_ENV=production
       - APP_PORT=${APP_PORT}
